@@ -10,5 +10,5 @@
         "react/prop-types": 0,
         "react/react-in-jsx-scope": 0
     },
-    "ignorePatterns": ["dist/", "build/" "node_modules/"]
+    "ignorePatterns": ["dist/", "build/", "node_modules/"]
 }
