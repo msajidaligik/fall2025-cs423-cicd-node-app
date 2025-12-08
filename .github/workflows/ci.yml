@@ -1,0 +1,64 @@
+name: CI Pipeline For ToDo App
+
+run-name: >+
+  CI Pipeline triggered by ${{github.actor}} 
+  on event':' ${{github.event_name}}
+  -> branch':' ${{github.ref_name}}
+  for repository':' ${{github.repository}} 
+
+on:
+  push:
+      branches:
+        - main
+        - feature/*
+  pull_request:
+      branches:
+        - main
+jobs:
+  quality-checks:
+    name: Check code quality (Lint + tests)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup NodeJs
+        uses: actions/setup-node@v6
+        with:
+          node-version: 18
+          cache: npm
+          
+      - name: Installing dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Run Tests
+        run: npm test -- --ci --watchAll=false --reporters=default --reporters=jest-junit
+  Build:
+    name: Create app build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup NodeJs
+        uses: actions/setup-node@v6
+        with:
+          node-version: 18
+          cache: npm
+          
+      - name: Installing dependencies
+        run: npm ci
+        
+      - name: Build production bundle 
+        run: npm run build
+        
+      - name: Upload build artifact
+        if: github.ref_name == 'main'
+        uses: actions/upload-artifact@v4 
+        with: 
+          name: react-build 
+          path: build/
+      
