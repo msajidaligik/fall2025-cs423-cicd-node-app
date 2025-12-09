@@ -2,9 +2,9 @@ name: CI Pipeline For ToDo App
 
 run-name: >+
   CI Pipeline triggered by ${{github.actor}} 
-  on event':' ${{github.event_name}}
-  -> branch':' ${{github.ref_name}}
-  for repository':' ${{github.repository}} 
+  on branch: ${{github.ref_name}} 
+  on event: ${{github.event_name}}
+  on repository: ${{github.repository}} 
 
 on:
   push:
