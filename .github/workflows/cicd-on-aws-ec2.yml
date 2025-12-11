@@ -1,0 +1,91 @@
+name: CI Pipeline For ToDo App
+
+run-name: >+
+  CI Pipeline triggered by ${{github.actor}} 
+  on branch: ${{github.ref_name}} 
+  on event: ${{github.event_name}}
+  on repository: ${{github.repository}} 
+
+on:
+  workflow_dispatch:
+  
+jobs:
+  quality-checks:
+    name: Check code quality (Lint + tests)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup NodeJs
+        uses: actions/setup-node@v6
+        with:
+          node-version: 18
+          cache: npm
+          
+      - name: Installing dependencies
+        run: npm install
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Run Tests
+        run: npm test -- --ci --watchAll=false --reporters=default
+  build:
+    name: Create app build
+    runs-on: ubuntu-latest
+    needs: quality-checks
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup NodeJs
+        uses: actions/setup-node@v6
+        with:
+          node-version: 18
+          cache: npm
+          
+      - name: Installing dependencies
+        run: npm install
+        
+      - name: Build production bundle 
+        run: npm run build
+        
+      - name: Upload build artifact
+        if: github.ref_name == 'main'
+        uses: actions/upload-artifact@v4 
+        with: 
+          name: react-build 
+          path: dist/
+      
+  deploy:
+    name: Deploy app to github pages
+    runs-on: ubuntu-latest
+    needs: build
+    if: ${{github.ref_name == 'main'}}
+            
+    steps:
+      - name: Download the artifacts
+        uses: actions/download-artifact@v5
+        with:
+          name: react-build
+          path: build
+          
+      - name: Copying the files to the ec2 instacne
+        uses: burnett01/rsync-deployments@6.0.0
+        with:
+           switches: -vzr --delete --omit-dir-times
+           path: ./build/
+           remote_path: /var/www/html/
+           remote_host: ${{ vars.EC2_HOST_IP }}
+           remote_user: ${{ vars.EC2_HOST_USER }}
+           remote_key: ${{ secrets.EC2_PRIVATE_KEY }}
+       #run: rsync -avz -e 'ssh -i ${{secrets.EC2_PRIVATE_KEY}}' ./* ubuntu@52.55.55.156:/var/www/html/
+
+
+
+
+
+
+
+    
