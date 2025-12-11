@@ -1,4 +1,4 @@
-name: CI Pipeline For ToDo App
+name: CICD Pipeline For ToDo App and Deployment on AWS EC2
 
 run-name: >+
   CI Pipeline triggered by ${{github.actor}} 
